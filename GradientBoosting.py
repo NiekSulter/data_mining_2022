@@ -1,5 +1,4 @@
 from sklearn.tree import DecisionTreeRegressor
-from mlfromscratch.deep_learning.loss_functions import CrossEntropy
 import numpy as np
 
 
@@ -33,10 +32,22 @@ class GradientBoosting:
             update = np.multiply(self.learning_rate, update)
             y_pred = -update if not y_pred.any() else y_pred - update
             
-        print(y_pred)
-            
-        y_pred = np.exp(y_pred) / np.expand_dims(np.sum(np.exp(y_pred), axis=0), axis=0)
+        y_pred = np.exp(y_pred) / np.expand_dims(np.sum(np.exp(y_pred), axis=1), axis=1)
         
-        y_pred = np.argmax(y_pred, axis=0)
+        y_pred = np.argmax(y_pred, axis=1)
             
         return y_pred
+    
+
+class CrossEntropy:
+    def __init__(self) -> None:
+        pass
+    
+    def loss(self, y, y_pred):
+        return -np.sum(y * np.log(y_pred)) / len(y)
+    
+    def accuracy(self, y, y_pred):
+        return np.sum(y == y_pred) / len(y)
+    
+    def gradient(self, y, y_pred):
+        return - (y / y_pred) / len(y)
