@@ -51,3 +51,13 @@ class CrossEntropy:
     
     def gradient(self, y, y_pred):
         return - (y / y_pred) / len(y)
+    
+
+class ConvertToOneHot:
+    def __init__(self) -> None:
+        pass
+    
+    def to_categorical(self, y):
+        y = np.array(y, dtype='int')
+        n_values = np.max(y) + 1
+        return np.eye(n_values)[y]

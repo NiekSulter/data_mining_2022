@@ -1,13 +1,11 @@
-from GradientBoosting import GradientBoosting
+from GradientBoosting import GradientBoosting, ConvertToOneHot
 from sklearn.model_selection import train_test_split
 from sklearn import preprocessing
 from sklearn.metrics import mean_squared_error
 import numpy as np
-from mlfromscratch.utils import to_categorical
 
 features_list = []
 classes = []
-
 
 
 with open('data_banknote_authentication.txt') as f:
@@ -24,7 +22,9 @@ X_train, X_test, y_train, y_test = train_test_split(features, classes_encoded, t
 
 GRB = GradientBoosting(n_estimators=100, learning_rate=0.1, max_depth=3)
 
-y_train = to_categorical(y_train)
+CTOH = ConvertToOneHot()
+
+y_train = CTOH.to_categorical(y_train)
 
 GRB.fit(X_train, y_train)
 
