@@ -193,12 +193,12 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         iris["data"], iris["target"], test_size=0.2, random_state=669)
         # accuracy needs to be 0.9 on the iris dataset
+    print(iris)
+    # model = DecisionTree(max_depth=5)
+    # model.fit(X_train, y_train)
+    # preds = model.predict(X_test)
 
-    model = DecisionTree(max_depth=5)
-    model.fit(X_train, y_train)
-    preds = model.predict(X_test)
-
-    print(accuracy_score(y_test, preds))
+    # print(accuracy_score(y_test, preds))
 
 
 main()
