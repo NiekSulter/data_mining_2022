@@ -95,6 +95,7 @@ class DecisionTree:
             "right": None
         }
         best_gain = -1
+        print(X.shape, y.shape)
         for feature in range(X.shape[1]):  # in columns
             # every unique of the feature
             # uniq_f = np.unique(X[:, feature])
@@ -106,7 +107,6 @@ class DecisionTree:
                     [row for row in df if row[feature] <= threshold])
                 right = np.array(
                     [row for row in df if row[feature] > threshold])
-
                 # only calculate the information gain if \
                 # there are records in both left and right
                 if len(left) > 0 and len(right) > 0:
@@ -193,12 +193,11 @@ def main():
     X_train, X_test, y_train, y_test = train_test_split(
         iris["data"], iris["target"], test_size=0.2, random_state=669)
         # accuracy needs to be 0.9 on the iris dataset
-    print(iris)
-    # model = DecisionTree(max_depth=5)
-    # model.fit(X_train, y_train)
-    # preds = model.predict(X_test)
+    model = DecisionTree(max_depth=5)
+    model.fit(X_train, y_train)
+    preds = model.predict(X_test)
 
-    # print(accuracy_score(y_test, preds))
+    print(accuracy_score(y_test, preds))
 
 
 main()
