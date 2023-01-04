@@ -46,14 +46,12 @@ class DecTreeReg:
         left = np.where(X[:, feature] < threshold)
         right = np.where(X[:, feature] >= threshold)
         # print(f"X: {X.shape}, y: {y.shape}, left: {left[0].shape}, right: {right[0].shape}")
-        # Xl = X[left]
-        # Xr = X[right]
-        # yl = y[left,]
-        # yr = y[right]
-        df = np.concatenate((X, y.reshape(1, -1).T), axis=1)
-        left = np.array([row for row in df if row[feature] <= threshold])
-        right = np.array([row for row in df if row[feature] > threshold])
-        return X[left], X[right], y[left], y[right]
+        Xl = X[left]
+        Xr = X[right]
+        yl = y[left,]
+        yr = y[right]
+        # return X[left], X[right], y[left], y[right]
+        return Xl, Xr, yl, yr
     
     def _find_best_split(self, X, y):
         """Finds the best split for a dataset.
@@ -68,15 +66,16 @@ class DecTreeReg:
         print(f"X: {X.shape}, y: {y.shape}")
         for feature in range(X.shape[1]):
             for threshold in np.unique(X[:, feature]):
-                # left, right, y_left, y_right = self._split(X, y, feature, threshold)
-                df = np.concatenate((X, y.reshape(1, -1).T), axis=1)
-                left = np.array(
-                    [row for row in df if row[feature] <= threshold])
-                right = np.array(
-                    [row for row in df if row[feature] > threshold])
+                left, right, y_left, y_right = self._split(X, y, feature, threshold)
+                test = np.where(X[:, feature] < threshold) # left wat uit _split komt zodra je het hier uitvoert dan crasht die 
+               
+                # right = np.where(X[:, feature] >= threshold)
+
                 if len(left) > 0 and len(right) > 0:
-                    # mse = self._calc_mse(y_left) + self._calc_mse(y_right)
-                    mse = self._calc_mse(left[:, -1]) + self._calc_mse(right[:, -1])
+                    mse = self._calc_mse(y_left) + self._calc_mse(y_right)
+                    # mse = self._calc_mse(y[left]) + self._calc_mse(y[right])
+                    # for some reason this doens't work, leads to RuntimeWarning: Mean of empty slice.
+                    # which introduces all kinds of problems
                     if mse < best_mse:
                         best_split["feature"] = feature
                         best_split["threshold"] = threshold
