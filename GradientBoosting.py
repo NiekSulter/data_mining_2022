@@ -50,6 +50,7 @@ class GradientBoosting:
             node_loc = self.trees[i].apply(X)
             
             leaves = dict((i, []) for i in np.unique(node_loc))
+            output_values = dict((i, []) for i in np.unique(node_loc))
             
             for j in range(len(residuals)):
                 leaves[node_loc[j]].append(residuals[j])
@@ -59,10 +60,18 @@ class GradientBoosting:
             for key in leaves:
                 # output_value = (np.sum(leaves[key]) / np.sum([np.multiply(p, 1 - p) for p in leaves[key]]))
                 
-                output_value = (np.sum(leaves[key]) / np.sum([np.multiply(initial_prediction, 1 - initial_prediction) for p in leaves[key]]))
+                output_values[key] = np.round((np.sum(leaves[key]) / np.sum([np.multiply(initial_prediction, 1 - initial_prediction) for p in leaves[key]])), 1)
                 
                 
-                print(f"Leaf {key} has: {output_value}")
+            print(output_values)
+            
+            updated_probabilities = []
+            
+            for j in range(len(residuals)):
+                print(f"{initial_prediction} + ({self.learning_rate} * {output_values[node_loc[j]]})")
+                updated_probabilities.append(np.round(self.log_odds_to_prob(initial_prediction + np.multiply(self.learning_rate, output_values[node_loc[j]])), 1))
+                
+            print(updated_probabilities)
             #update residuals with the predictions of the regression tree
             # update = self.trees[i].predict(X)
             
@@ -97,6 +106,9 @@ class GradientBoosting:
         y_pred = np.argmax(y_pred, axis=1)
             
         return y_pred
+    
+    def log_odds_to_prob(self, y):
+        return np.exp(y) / (1 + np.exp(y))
     
 
 class CrossEntropy:
