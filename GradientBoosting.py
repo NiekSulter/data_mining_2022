@@ -1,4 +1,5 @@
 from sklearn.tree import DecisionTreeRegressor
+from DecisionTreeRegression import DecisionTreeReg
 import numpy as np
 
 
@@ -17,7 +18,23 @@ class GradientBoosting:
         
 
     def fit(self, X, y):
-        y_pred = np.full(np.shape(y), np.mean(y, axis=0))
+        """Fit data to the trees generated in the constructor. 
+        
+
+        Args:
+            X (_type_): _description_
+            y (_type_): _description_
+        """
+        class_0 = np.sum(y[:, 0], dtype='int')
+        class_1 = np.sum(y[:, 1], dtype='int')
+        
+        log_odds = np.log(class_1 / class_0)
+        
+        probability = np.exp(log_odds) / (1 + np.exp(log_odds))
+        
+        pa = np.array([probability, 1 - probability])
+    
+        y_pred = np.full(np.shape(y), pa)
         
         for i in range(self.n_estimators):
             gradient = self.loss.gradient(y, y_pred)
@@ -28,9 +45,11 @@ class GradientBoosting:
     def predict(self, X):
         y_pred = np.array([])
         for tree in self.trees:
-            update = tree.predict(X)
-            update = np.multiply(self.learning_rate, update)
-            y_pred = -update if not y_pred.any() else y_pred - update
+            update = np.multiply(self.learning_rate, tree.predict(X))
+            if not y_pred.any():
+                y_pred = -update
+            else:
+                y_pred = y_pred - update
             
         y_pred = np.exp(y_pred) / np.expand_dims(np.sum(np.exp(y_pred), axis=1), axis=1)
         
@@ -61,3 +80,6 @@ class ConvertToOneHot:
         y = np.array(y, dtype='int')
         n_values = np.max(y) + 1
         return np.eye(n_values)[y]
+    
+    def to_labels(self, y):
+        return np.argmax(y, axis=1)
