@@ -62,7 +62,7 @@ class DecisionTreeRegression:
                                       "left": left,
                                       "right": right,
                                       "mse": best_mse}
-        return best_split
+        return best_split 
 
     def _build_tree(self, X, y, depth=0):
         if X.shape[0] >= self.min_samples_split and depth <= self.max_depth:
