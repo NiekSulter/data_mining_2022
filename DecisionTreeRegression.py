@@ -1,9 +1,5 @@
 # python 3.10.6
 import numpy as np
-from sklearn.datasets import load_diabetes
-from sklearn.metrics import accuracy_score, mean_squared_error
-from sklearn.model_selection import train_test_split
-from sklearn.tree import DecisionTreeRegressor
 
 
 # https://levelup.gitconnected.com/building-a-decision-tree-from-scratch-in-python-machine-learning-from-scratch-part-ii-6e2e56265b19
@@ -69,8 +65,7 @@ class DecisionTreeReg:
         best_split_mse = {
             "mse": 0
         }
-        # print(X.shape, y.shape)
-        for feature in range(X.shape[1]):
+        for feature in range(X.shape[1]): # col
             # thresholds = np.unique(X[:, feature])
             # Returns the sorted unique elements of an array
             for treshold in np.unique(X[:, feature]):
