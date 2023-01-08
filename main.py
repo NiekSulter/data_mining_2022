@@ -29,9 +29,9 @@ if __name__ == "__main__":
     # model_sk = DecisionTreeRegressor()
     model_sk.fit(X_train, y_train)
     print(f"compared R^2 sklearn: {model_sk.score(X_test, y_test)}.")
-    print(f"Result MSE on training set single run: "
+    print(f"Result MSE_sk on training set single run: "
           f"{model._calc_mse(y_train, model_sk.predict(X_train))}")
-    print(f"Result MSE on test set single run: "
+    print(f"Result MSE_sk on test set single run: "
           f"{model._calc_mse(y_test, model_sk.predict(X_test))}")
     print(f"Total time sklearn: {time.time() - start_time} seconds.\n")
 
