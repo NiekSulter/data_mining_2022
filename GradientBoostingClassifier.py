@@ -2,6 +2,12 @@ from sklearn.tree import DecisionTreeRegressor
 from DecisionTreeRegression import DecisionTreeReg
 import numpy as np
 
+#sources
+#https://www.youtube.com/watch?v=jxuNLH5dXCs - Formulas
+#https://github.com/eriklindernoren/ML-From-Scratch/blob/master/mlfromscratch/supervised_learning/gradient_boosting.py
+#https://github.com/scikit-learn/scikit-learn/blob/98cf537f5/sklearn/ensemble/_gb.py#L851
+#https://towardsdatascience.com/gradient-boosting-in-python-from-scratch-788d1cf1ca7
+
 
 class GradientBoosting:
     def __init__(self, n_estimators, learning_rate, max_depth) -> None:
@@ -19,11 +25,10 @@ class GradientBoosting:
 
     def fit(self, X, y):
         """Fit data to the trees generated in the constructor. 
-        
-
+        Inital predictions are made using the log odds and class distribution
         Args:
-            X (_type_): _description_
-            y (_type_): _description_
+            X (_type_): features
+            y (_type_): output variables
         """
         class_0 = np.sum(y[:, 0], dtype='int')
         class_1 = np.sum(y[:, 1], dtype='int')
