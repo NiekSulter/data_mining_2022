@@ -1,22 +1,26 @@
 # python 3.10.6
 import numpy as np
 
-
 # https://levelup.gitconnected.com/building-a-decision-tree-from-scratch-in-python-machine-learning-from-scratch-part-ii-6e2e56265b19
 # https://medium.com/analytics-vidhya/regression-trees-decision-tree-for-regression-machine-learning-e4d7525d8047
 # https://scikit-learn.org/stable/modules/generated/sklearn.tree.DecisionTreeClassifier.html
-# https://betterdatascience.com/mml-decision-trees/
+# https://austindavidbrown.github.io/post/2019/01/regression-decision-trees-in-python/
+# https://betterdatasciefnce.com/mml-decision-trees/
+
+
 class Node:
     """Single node of a decision tree
     """
     # a single node of a decision tree
-    def __init__(self, feature=None, threshold=None, left=None, right=None, value=None, mse=None):
+
+    def __init__(self, feature=None, threshold=None, left=None,
+                 right=None, value=None, loss=None):
         self.left = left
         self.right = right
         self.feature = feature
         self.threshold = threshold
         self.value = value
-        self.mse = mse
+        self.loss = loss  # future expansion to print the tree
 
 
 class DecisionTreeReg:
@@ -32,19 +36,20 @@ class DecisionTreeReg:
         self.max_depth = max_depth
         self.root = None
 
-    def _calc_mse(self, y):
+    def _calc_mse(self, y, y_pred=None):
         """Calculates the mean squared error of a list of values.
         Args:
             y (numpy.ndarray): values
         Returns:
             float: mean squared error
         """
-        # the times 1/n is not necessary since we only need the
-        # relative differences between splits
+        if y_pred is not None:  # to predict the training data
+            # return np.sum(np.mean((y - y_pred) ** 2))
+            return np.mean((y - y_pred) ** 2)
         return np.mean((y - np.mean(y)) ** 2)
 
     def _cmse(self, left, right):
-        """Adds the left and right mse value.
+        """Adds the left and right and combines the mse value.
         Args:
             left (numpy.ndarray): values
             right (numpy.ndarray): values
@@ -54,38 +59,46 @@ class DecisionTreeReg:
         return self._calc_mse(left) + self._calc_mse(right)
 
     def _best_split(self, X, y):
-        """Calculate the best split for X and y via the mean squared error.
+        """Calculate the best split for X and y via difference in
+        the mean squared error.
         Args:
             X (numpy.ndarray): features
             y (numpy.ndarray): target
         Returns:
             dict: best split
         """
-        best_mse = 0
+        # Greedy algorithm to find the best split
+        best_loss = 0
         best_split_mse = {
-            "mse": 0
+            "loss": 0
         }
-        for feature in range(X.shape[1]): # col
-            # thresholds = np.unique(X[:, feature])
+        parent_mse = self._calc_mse(y)
+        for feature in range(X.shape[1]):  # col
             # Returns the sorted unique elements of an array
             for treshold in np.unique(X[:, feature]):
-                # df = np.concatenate((X, y.reshape(-1, 1).T), axis=1)
+                # create dataset and split it into left and right
+                # left contains all the values less than the threshold
+                # right all the values greater/ equal than the threshold
                 df = np.concatenate((X, y.reshape(1, -1).T), axis=1)
                 left = np.array(
-                    [row for row in df if row[feature] <= treshold])
+                    [row for row in df if row[feature] < treshold])
                 right = np.array(
-                    [row for row in df if row[feature] > treshold])
+                    [row for row in df if row[feature] >= treshold])
                 if len(left) > 0 and len(right) > 0:
                     y = df[:, -1]
-                    mse = self._cmse(left[:, -1], right[:, -1])
-
-                    if mse > best_mse:
-                        best_mse = mse
+                    # mse = self._cmse(left[:, -1], right[:, -1])
+                    loss = parent_mse - 1 / y.shape[0] * (self._calc_mse(
+                        left[:, -1]) * left[:, -1].shape[0] +
+                        self._calc_mse(right[:, -1]) *
+                        right[:, -1].shape[0])
+                    if loss >= best_loss:
+                        best_loss = loss
                         best_split_mse["feature"] = feature
                         best_split_mse["threshold"] = treshold
-                        best_split_mse["mse"] = best_mse
+                        best_split_mse["loss"] = best_loss
                         best_split_mse["left"] = left
                         best_split_mse["right"] = right
+                        # best_split_mse["mse"] = # use self._cmse()
         return best_split_mse
 
     def _build_tree(self, X, y, depth=0):
@@ -97,14 +110,20 @@ class DecisionTreeReg:
         Returns:
             Node: decision tree
         """
+        # recursive function to build the tree
         if X.shape[0] >= self.min_samples_split and depth <= self.max_depth:
             split = self._best_split(X, y)
-            if split["mse"] > 0:  # to prevent None
+            # print(split["mse"], "split")
+            if split["loss"] > 0:  # to prevent None
                 left_n = self._build_tree(
-                    X=split["left"][:, :-1], y=split["left"][:, -1], depth=depth+1)
+                    X=split["left"][:, :-1],
+                    y=split["left"][:, -1], depth=depth+1)
                 right_n = self._build_tree(
-                    X=split["right"][:, :-1], y=split["right"][:, -1], depth=depth+1)
-                return Node(feature=split["feature"], threshold=split["threshold"], left=left_n, right=right_n)
+                    X=split["right"][:, :-1],
+                    y=split["right"][:, -1], depth=depth+1)
+                return Node(feature=split["feature"],
+                            threshold=split["threshold"],
+                            left=left_n, right=right_n, loss=split["loss"])
         return Node(value=np.mean(y))
 
     def fit(self, X, y):
@@ -136,7 +155,10 @@ class DecisionTreeReg:
         Returns:
             numpy.ndarray: predictions
         """
-        y_pred = [self._predict(x, self.root) for x in X]
+        # y_pred = [self._predict(x, self.root) for x in X]
+        y_pred = []  # add predictions
+        for x in X:  # check for each sample in X
+            y_pred.append(self._predict(x, self.root))
         return np.array(y_pred)
 
     def _score(self, X, y):
@@ -151,5 +173,5 @@ class DecisionTreeReg:
         u = ((y - y_pred) ** 2).sum()
         v = ((y - y.mean()) ** 2).sum()
         # print(f"u: {u}, v: {v}, 1 - (u / v): {round(1 - u / v, 3)}")
-        print(f"R^2: {round(1 - u / v, 3)}")
+        print(f"R^2: {round(1 - u / v, 3)}")  # 3 decimals
         return 1 - (u / v)
